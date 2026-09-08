@@ -259,10 +259,15 @@ let ocrWorkerPromise;
 
 function parseOcrPrice(text) {
   const normalized = text.replace(",", ".").replace(/\s+/g, " ");
-  const matches = normalized.match(/\d{1,6}(?:\.\d{1,2})?/g) || [];
-  const prices = matches
+  const decimalMatches = normalized.match(/\d{1,4}\.\d{1,2}/g) || [];
+  const integerMatches = normalized.match(/\d{1,4}/g) || [];
+  const decimals = decimalMatches
     .map((value) => Number.parseFloat(value))
-    .filter((value) => Number.isFinite(value) && value > 0);
+    .filter((value) => Number.isFinite(value) && value > 0 && value < 10000);
+  if (decimals.length) return decimals[decimals.length - 1];
+  const prices = integerMatches
+    .map((value) => Number.parseFloat(value))
+    .filter((value) => Number.isFinite(value) && value > 0 && value <= 5000);
   return prices.length ? Math.max(...prices) : null;
 }
 
@@ -273,9 +278,9 @@ async function scanCameraFrame() {
     const width = cameraVideo.videoWidth;
     const height = cameraVideo.videoHeight;
     const cropX = Math.round(width * 0.12);
-    const cropY = Math.round(height * 0.25);
+    const cropY = Math.round(height * 0.28);
     const cropWidth = Math.round(width * 0.76);
-    const cropHeight = Math.round(height * 0.5);
+    const cropHeight = Math.round(height * 0.38);
     ocrCanvas.width = Math.min(cropWidth * 2, 1600);
     ocrCanvas.height = Math.min(cropHeight * 2, 1000);
     const context = ocrCanvas.getContext("2d", { willReadFrequently: true });
