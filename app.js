@@ -257,18 +257,18 @@ let lastOcrCandidate = null;
 let ocrCandidateCount = 0;
 let ocrWorkerPromise;
 
-function parseOcrPrice(text) {
-  const normalized = text.replace(",", ".").replace(/\s+/g, " ");
-  const decimalMatches = normalized.match(/\d{1,4}\.\d{1,2}/g) || [];
-  const integerMatches = normalized.match(/\d{1,4}/g) || [];
-  const decimals = decimalMatches
-    .map((value) => Number.parseFloat(value))
-    .filter((value) => Number.isFinite(value) && value > 0 && value < 10000);
-  if (decimals.length) return decimals[decimals.length - 1];
-  const prices = integerMatches
-    .map((value) => Number.parseFloat(value))
-    .filter((value) => Number.isFinite(value) && value > 0 && value <= 5000);
-  return prices.length ? Math.max(...prices) : null;
+function parseOcrPrice(result) {
+  const words = (result.data.words || [])
+    .map((word) => {
+      const value = word.text.replace(",", ".").replace(/[^\d.]/g, "");
+      const amount = Number.parseFloat(value);
+      const height = word.bbox ? word.bbox.y1 - word.bbox.y0 : 0;
+      return { amount, height, hasDecimal: /^\d{1,4}\.\d{1,2}$/.test(value) };
+    })
+    .filter(({ amount, height }) => Number.isFinite(amount) && amount > 0 && amount <= 5000 && height > 10);
+  const decimalPrices = words.filter(({ hasDecimal }) => hasDecimal);
+  const candidates = decimalPrices.length ? decimalPrices : words;
+  return candidates.sort((left, right) => right.height - left.height)[0]?.amount || null;
 }
 
 async function scanCameraFrame() {
@@ -289,7 +289,7 @@ async function scanCameraFrame() {
     const worker = await getOcrWorker();
     const result = await worker.recognize(ocrCanvas);
     const confidence = result.data.confidence || 0;
-    const amount = parseOcrPrice(result.data.text);
+    const amount = parseOcrPrice(result);
     const rate = state.rates[state.selectedCurrency];
     if (amount === null || confidence < 20) {
       lastOcrCandidate = null;
@@ -334,7 +334,7 @@ async function getOcrWorker() {
 function startOcr() {
   clearInterval(ocrTimer);
   document.querySelector("#camera-message").textContent = "Skanuję cenę…";
-  ocrTimer = window.setInterval(scanCameraFrame, 2500);
+  ocrTimer = window.setInterval(scanCameraFrame, 1800);
   scanCameraFrame();
 }
 
