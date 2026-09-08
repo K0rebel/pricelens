@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <title>Cena na miejscu</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">↗</div>
+        <div>
+          <p class="eyebrow">Szybkie zakupy za granicą</p>
+          <h1>Cena na miejscu</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="theme-toggle" type="button" title="Włącz tryb ciemny" aria-label="Włącz tryb ciemny">☾</button>
+          <button class="icon-button" id="refresh-rates" type="button" title="Odśwież kursy" aria-label="Odśwież kursy">↻</button>
+        </div>
+      </header>
+
+      <div class="app-view active" id="calculator-view">
+      <section class="hero-card">
+        <button class="location-pill" id="location-button" type="button"><span class="pulse"></span><span id="location-label">Wykrywam lokalizację GPS…</span></button>
+        <p class="hero-label">Ile to kosztuje w Polsce?</p>
+        <output class="converted-price" id="converted-price">— zł</output>
+        <p class="rate-note" id="rate-note">Pobieram aktualny kurs…</p>
+      </section>
+
+      <section class="calculator-card" id="calculator-section" aria-labelledby="calculator-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Przelicznik</p>
+            <h2 id="calculator-title">Wpisz cenę z metki</h2>
+          </div>
+          <span class="status-dot" id="rate-status" title="Status kursu"></span>
+        </div>
+        <div class="amount-row">
+          <label class="amount-field">
+            <span class="sr-only">Kwota</span>
+            <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" value="502" autocomplete="off" />
+          </label>
+          <label class="currency-field">
+            <span class="sr-only">Waluta</span>
+            <img class="currency-flag" id="currency-flag" src="" alt="" />
+            <select id="currency" aria-label="Wybierz walutę"></select>
+          </label>
+        </div>
+        <div class="quick-values" aria-label="Szybkie kwoty">
+          <button type="button" data-amount="10">10</button>
+          <button type="button" data-amount="50">50</button>
+          <button type="button" data-amount="100">100</button>
+          <button type="button" data-amount="500">500</button>
+        </div>
+      </section>
+      </div>
+
+      <div class="app-view" id="history-view">
+      <section class="history-card" id="history-section" aria-labelledby="history-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Ostatnie</p>
+            <h2 id="history-title">Historia przeliczeń</h2>
+          </div>
+          <button class="text-button" id="clear-history" type="button">Wyczyść</button>
+        </div>
+        <div class="history-list" id="history-list">
+          <p class="empty-state">Twoje ostatnie przeliczenia pojawią się tutaj.</p>
+        </div>
+      </section>
+      </div>
+
+      <div class="app-view" id="camera-view-page">
+      <section class="camera-card" id="camera-section" aria-labelledby="camera-title">
+        <button class="camera-back" id="camera-back" type="button">‹ Wróć</button>
+        <div class="camera-copy">
+          <span class="camera-icon" aria-hidden="true">⌾</span>
+          <div>
+            <p class="eyebrow">Tryb obiektywu</p>
+            <h2 id="camera-title">Skanuj cenę aparatem</h2>
+            <p>Skieruj telefon na etykietę, a cena zostanie odczytana automatycznie.</p>
+          </div>
+        </div>
+        <button class="primary-button" id="camera-button" type="button">Uruchom aparat</button>
+        <div class="camera-view" id="camera-view" hidden>
+          <video id="camera-video" autoplay playsinline></video>
+          <div class="scan-frame"><span></span></div>
+          <div class="ar-result" id="ar-result" hidden></div>
+          <button class="capture-button" id="capture-button" type="button" aria-label="Zrób zdjęcie">●</button>
+          <p class="camera-message" id="camera-message">Umieść cenę w ramce.</p>
+        </div>
+      </section>
+      </div>
+
+      <footer>
+        <span id="updated-at">Kursy walut są aktualizowane automatycznie</span>
+        <span>Waluta docelowa: <strong>PLN</strong></span>
+      </footer>
+      <nav class="bottom-nav" aria-label="Główna nawigacja">
+        <a class="nav-item active" href="#calculator-view" data-view="calculator-view"><span aria-hidden="true">⌁</span>Przelicznik</a>
+        <a class="nav-item" href="#camera-view-page" data-view="camera-view-page"><span aria-hidden="true">⌾</span>Obiektyw</a>
+        <a class="nav-item" href="#history-view" data-view="history-view"><span aria-hidden="true">◷</span>Historia</a>
+      </nav>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
