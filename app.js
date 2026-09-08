@@ -255,6 +255,7 @@ let ocrTimer;
 let ocrInProgress = false;
 let lastOcrCandidate = null;
 let ocrCandidateCount = 0;
+let ocrWorkerPromise;
 
 function parseOcrPrice(text) {
   const normalized = text.replace(",", ".").replace(/\s+/g, " ");
@@ -275,24 +276,21 @@ async function scanCameraFrame() {
     const cropY = Math.round(height * 0.25);
     const cropWidth = Math.round(width * 0.76);
     const cropHeight = Math.round(height * 0.5);
-    ocrCanvas.width = Math.min(cropWidth, 1280);
-    ocrCanvas.height = Math.round((ocrCanvas.width / cropWidth) * cropHeight);
-    ocrCanvas.getContext("2d").drawImage(cameraVideo, cropX, cropY, cropWidth, cropHeight, 0, 0, ocrCanvas.width, ocrCanvas.height);
-    const result = await window.Tesseract.recognize(ocrCanvas, "eng", {
-      logger: () => {},
-      config: {
-        tessedit_pageseg_mode: 6,
-        tessedit_char_whitelist: "0123456789,.",
-      },
-    });
+    ocrCanvas.width = Math.min(cropWidth * 2, 1600);
+    ocrCanvas.height = Math.min(cropHeight * 2, 1000);
+    const context = ocrCanvas.getContext("2d", { willReadFrequently: true });
+    context.filter = "grayscale(1) contrast(1.8)";
+    context.drawImage(cameraVideo, cropX, cropY, cropWidth, cropHeight, 0, 0, ocrCanvas.width, ocrCanvas.height);
+    const worker = await getOcrWorker();
+    const result = await worker.recognize(ocrCanvas);
     const confidence = result.data.confidence || 0;
     const amount = parseOcrPrice(result.data.text);
     const rate = state.rates[state.selectedCurrency];
-    if (amount === null || confidence < 35) {
+    if (amount === null || confidence < 20) {
       lastOcrCandidate = null;
       ocrCandidateCount = 0;
       arResult.hidden = true;
-      document.querySelector("#camera-message").textContent = "Umieść cenę w ramce.";
+      document.querySelector("#camera-message").textContent = "Szukam ceny…";
       return;
     }
     if (amount === lastOcrCandidate) {
@@ -314,8 +312,23 @@ async function scanCameraFrame() {
   }
 }
 
+async function getOcrWorker() {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = window.Tesseract.createWorker("eng", 1, { logger: () => {} })
+      .then(async (worker) => {
+        await worker.setParameters({
+          tessedit_char_whitelist: "0123456789,.",
+          tessedit_pageseg_mode: "6",
+        });
+        return worker;
+      });
+  }
+  return ocrWorkerPromise;
+}
+
 function startOcr() {
   clearInterval(ocrTimer);
+  document.querySelector("#camera-message").textContent = "Skanuję cenę…";
   ocrTimer = window.setInterval(scanCameraFrame, 2500);
   scanCameraFrame();
 }
@@ -355,6 +368,10 @@ function stopCamera() {
   cameraView.hidden = true;
   arResult.hidden = true;
   clearInterval(ocrTimer);
+  if (ocrWorkerPromise) {
+    ocrWorkerPromise.then((worker) => worker.terminate()).catch((error) => console.error("Nie udało się zamknąć OCR:", error));
+    ocrWorkerPromise = undefined;
+  }
   document.querySelector("#camera-button").textContent = "Uruchom aparat";
 }
 
