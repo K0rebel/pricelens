@@ -37,10 +37,11 @@ const rateStatus = document.querySelector("#rate-status");
 const locationLabel = document.querySelector("#location-label");
 const updatedAt = document.querySelector("#updated-at");
 let locationRequestInProgress = false;
+currencyFlag.hidden = true;
 
 const locationPlaceholder = document.createElement("option");
 locationPlaceholder.value = "";
-locationPlaceholder.textContent = "Wybierz pozycję GPS";
+locationPlaceholder.textContent = "Ustalanie lokalizacji…";
 locationPlaceholder.disabled = true;
 locationPlaceholder.selected = true;
 currencySelect.append(locationPlaceholder);
@@ -121,6 +122,7 @@ function setRateError(message) {
 
 function setLocationStatus(message) {
   locationLabel.textContent = message;
+  document.querySelector("#location-button").setAttribute("aria-label", message);
 }
 
 async function detectCurrencyFromGps() {
@@ -163,7 +165,7 @@ async function detectCurrencyFromGps() {
     }
   }, (error) => {
     const messages = {
-      1: "Brak zgody na GPS · włącz ją w ustawieniach Safari",
+      1: "Włącz lokalizację dla Safari i kliknij tutaj ponownie",
       2: "Nie można ustalić pozycji · dotknij, aby ponowić",
       3: "GPS działa zbyt długo · dotknij, aby ponowić",
     };
@@ -362,7 +364,7 @@ if (localStorage.getItem("dark-mode") === "1") {
   document.querySelector("#theme-toggle").textContent = "☀";
 }
 renderHistory();
-detectCurrencyFromGps();
+window.setTimeout(detectCurrencyFromGps, 250);
 loadRates();
 const initialView = document.querySelector(`[data-view="${window.location.hash.slice(1)}"]`);
 if (initialView) initialView.click();
