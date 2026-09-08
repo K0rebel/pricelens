@@ -17,6 +17,18 @@ const currencies = {
   JPY: ["Japonia", "Jen", "jp"],
   CAD: ["Kanada", "Dolar kanadyjski", "ca"],
   AUD: ["Australia", "Dolar australijski", "au"],
+  BRL: ["Brazylia", "Real brazylijski", "br"],
+  CNY: ["Chiny", "Juan chiński", "cn"],
+  HKD: ["Hongkong", "Dolar hongkoński", "hk"],
+  IDR: ["Indonezja", "Rupia indonezyjska", "id"],
+  INR: ["Indie", "Rupia indyjska", "in"],
+  KRW: ["Korea Południowa", "Won południowokoreański", "kr"],
+  MXN: ["Meksyk", "Peso meksykańskie", "mx"],
+  MYR: ["Malezja", "Ringgit malezyjski", "my"],
+  NZD: ["Nowa Zelandia", "Dolar nowozelandzki", "nz"],
+  SGD: ["Singapur", "Dolar singapurski", "sg"],
+  THB: ["Tajlandia", "Baht tajlandzki", "th"],
+  ZAR: ["Republika Południowej Afryki", "Rand południowoafrykański", "za"],
 };
 
 const countryCurrencies = {
@@ -24,6 +36,8 @@ const countryCurrencies = {
   IE: "EUR", IT: "EUR", LT: "EUR", LU: "EUR", LV: "EUR", MT: "EUR", NL: "EUR", PT: "EUR", SI: "EUR",
   SK: "EUR", HR: "EUR", HU: "HUF", CZ: "CZK", GB: "GBP", CH: "CHF", SE: "SEK", NO: "NOK", DK: "DKK",
   PL: "PLN", US: "USD", RO: "RON", BG: "BGN", RS: "RSD", TR: "TRY", IS: "ISK", JP: "JPY", CA: "CAD", AU: "AUD",
+  BR: "BRL", CN: "CNY", HK: "HKD", ID: "IDR", IN: "INR", KR: "KRW", MX: "MXN", MY: "MYR", NZ: "NZD", SG: "SGD",
+  TH: "THB", ZA: "ZAR",
 };
 
 const state = { rates: {}, selectedCurrency: null, isLoading: false, locationReady: false };
