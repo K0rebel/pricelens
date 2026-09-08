@@ -250,7 +250,7 @@ document.querySelectorAll(".nav-item").forEach((item) => {
     item.classList.add("active");
     if (item.dataset.view === "camera-view-page") {
       document.body.classList.add("camera-mode");
-      startCamera();
+      if (event.isTrusted) startCamera();
     } else {
       document.body.classList.remove("camera-mode");
       stopCamera();
@@ -261,6 +261,7 @@ document.querySelectorAll(".nav-item").forEach((item) => {
 });
 
 let cameraStream;
+let cameraStarting = false;
 const cameraView = document.querySelector("#camera-view");
 const cameraVideo = document.querySelector("#camera-video");
 const arResult = document.querySelector("#ar-result");
@@ -358,15 +359,23 @@ async function startCamera() {
     console.error("Widok aparatu nie jest gotowy.");
     return false;
   }
+  if (cameraStarting || cameraStream) return Boolean(cameraStream);
+  if (!window.isSecureContext) {
+    cameraMessage.textContent = "Aparat wymaga HTTPS. Otwórz aplikację przez bezpieczny adres.";
+    cameraView.hidden = false;
+    return false;
+  }
   if (!navigator.mediaDevices?.getUserMedia) {
     cameraMessage.textContent = "Aparat nie jest dostępny w tej przeglądarce.";
     cameraView.hidden = false;
     return false;
   }
+  cameraStarting = true;
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
     cameraVideo.srcObject = cameraStream;
     cameraView.hidden = false;
+    document.body.classList.add("camera-active");
     document.querySelector("#camera-button").textContent = "Zamknij obiektyw";
     startOcr();
     return true;
@@ -375,6 +384,8 @@ async function startCamera() {
     cameraView.hidden = false;
     console.error("Nie udało się uruchomić aparatu:", error);
     return false;
+  } finally {
+    cameraStarting = false;
   }
 }
 
@@ -383,7 +394,8 @@ function stopCamera() {
     cameraStream.getTracks().forEach((track) => track.stop());
     cameraStream = undefined;
   }
-  cameraVideo.srcObject = null;
+    document.body.classList.remove("camera-active");
+    cameraVideo.srcObject = null;
   cameraView.hidden = true;
   arResult.hidden = true;
   clearInterval(ocrTimer);

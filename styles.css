@@ -88,7 +88,7 @@ h2 { margin-top: 5px; font-size: 18px; letter-spacing: -.03em; }
 .camera-mode .topbar .eyebrow { color: var(--muted); }
 .camera-mode .topbar .icon-button { color: #536156; }
 .camera-mode.dark .topbar .icon-button { color: #c5d4c6; }
-.camera-mode .camera-back, .camera-mode .camera-copy, .camera-mode .primary-button { display: none; }
+.camera-mode.camera-active .camera-back, .camera-mode.camera-active .camera-copy, .camera-mode.camera-active .primary-button { display: none; }
 .camera-mode .camera-view { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; border-radius: 0; }
 .camera-mode .camera-message { top: 24px; font-size: 15px; font-weight: 700; }
 .camera-mode .capture-button { display: none; }
