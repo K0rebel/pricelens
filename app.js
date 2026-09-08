@@ -36,6 +36,7 @@ const rateNote = document.querySelector("#rate-note");
 const rateStatus = document.querySelector("#rate-status");
 const locationLabel = document.querySelector("#location-label");
 const updatedAt = document.querySelector("#updated-at");
+let locationRequestInProgress = false;
 
 const locationPlaceholder = document.createElement("option");
 locationPlaceholder.value = "";
@@ -123,10 +124,17 @@ function setLocationStatus(message) {
 }
 
 async function detectCurrencyFromGps() {
+  if (!window.isSecureContext) {
+    setLocationStatus("GPS wymaga HTTPS · otwórz bezpieczny adres");
+    console.error("Geolocation requires a secure context. Use HTTPS or localhost.");
+    return;
+  }
   if (!navigator.geolocation) {
     setLocationStatus("GPS nie jest dostępny w tej przeglądarce");
     return;
   }
+  if (locationRequestInProgress) return;
+  locationRequestInProgress = true;
   setLocationStatus("Pobieram lokalizację GPS…");
   navigator.geolocation.getCurrentPosition(async ({ coords }) => {
     try {
@@ -150,14 +158,20 @@ async function detectCurrencyFromGps() {
     } catch (error) {
       setLocationStatus("Nie udało się rozpoznać kraju · dotknij, aby ponowić");
       console.error("Nie udało się rozpoznać kraju z GPS:", error);
+    } finally {
+      locationRequestInProgress = false;
     }
   }, (error) => {
-    const message = error.code === error.PERMISSION_DENIED
-      ? "Brak zgody na GPS · dotknij, aby ponowić"
-      : "GPS niedostępny · dotknij, aby ponowić";
+    const messages = {
+      1: "Brak zgody na GPS · włącz ją w ustawieniach Safari",
+      2: "Nie można ustalić pozycji · dotknij, aby ponowić",
+      3: "GPS działa zbyt długo · dotknij, aby ponowić",
+    };
+    const message = messages[error.code] || "GPS niedostępny · dotknij, aby ponowić";
     setLocationStatus(message);
     console.error("Nie udało się pobrać lokalizacji GPS:", error);
-  }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 });
+    locationRequestInProgress = false;
+  }, { enableHighAccuracy: false, timeout: 30000, maximumAge: 300000 });
 }
 
 async function loadRates() {
