@@ -1,4 +1,4 @@
-# Cena na miejscu
+# PriceLens
 
 Prosty prototyp aplikacji do przeliczania cen zagranicznych na PLN.
 
