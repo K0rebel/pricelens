@@ -258,8 +258,11 @@ let ocrCandidateCount = 0;
 
 function parseOcrPrice(text) {
   const normalized = text.replace(",", ".").replace(/\s+/g, " ");
-  const match = normalized.match(/(?:^|\s)(\d{1,6}(?:\.\d{1,2})?)(?:\s|$)/);
-  return match ? Number.parseFloat(match[1]) : null;
+  const matches = normalized.match(/\d{1,6}(?:\.\d{1,2})?/g) || [];
+  const prices = matches
+    .map((value) => Number.parseFloat(value))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  return prices.length ? Math.max(...prices) : null;
 }
 
 async function scanCameraFrame() {
@@ -275,13 +278,20 @@ async function scanCameraFrame() {
     ocrCanvas.width = Math.min(cropWidth, 1280);
     ocrCanvas.height = Math.round((ocrCanvas.width / cropWidth) * cropHeight);
     ocrCanvas.getContext("2d").drawImage(cameraVideo, cropX, cropY, cropWidth, cropHeight, 0, 0, ocrCanvas.width, ocrCanvas.height);
-    const result = await window.Tesseract.recognize(ocrCanvas, "eng", { logger: () => {} });
+    const result = await window.Tesseract.recognize(ocrCanvas, "eng", {
+      logger: () => {},
+      config: {
+        tessedit_pageseg_mode: 6,
+        tessedit_char_whitelist: "0123456789,.",
+      },
+    });
     const confidence = result.data.confidence || 0;
     const amount = parseOcrPrice(result.data.text);
     const rate = state.rates[state.selectedCurrency];
-    if (amount === null || confidence < 55 || !rate) {
+    if (amount === null || confidence < 35) {
       lastOcrCandidate = null;
       ocrCandidateCount = 0;
+      arResult.hidden = true;
       document.querySelector("#camera-message").textContent = "Umieść cenę w ramce.";
       return;
     }
@@ -292,7 +302,8 @@ async function scanCameraFrame() {
       ocrCandidateCount = 1;
     }
     if (ocrCandidateCount >= 2) {
-      arResult.innerHTML = `${amount} ${state.selectedCurrency}<small>≈ ${formatPrice(amount * rate)}</small>`;
+      const converted = rate ? `<small>≈ ${formatPrice(amount * rate)}</small>` : "<small>Ustal lokalizację, aby przeliczyć</small>";
+      arResult.innerHTML = `${amount}${state.selectedCurrency ? ` ${state.selectedCurrency}` : ""}${converted}`;
       arResult.hidden = false;
       document.querySelector("#camera-message").textContent = "Cena rozpoznana";
     }
